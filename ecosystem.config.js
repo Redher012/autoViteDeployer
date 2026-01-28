@@ -16,6 +16,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 3000,
+        DEPLOYMENT_DOMAIN: 'server.appstetic.com', // Used to generate subdomain URLs
         PATH: process.env.PATH || '/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin',
       },
       error_file: './logs/app-error.log',

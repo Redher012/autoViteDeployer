@@ -136,14 +136,14 @@ export default function DeploymentTable() {
                 </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                {deployment.status === 'running' && deployment.port ? (
+                {deployment.status === 'running' && deployment.subdomain ? (
                   <a
-                    href={`http://localhost:${deployment.port}`}
+                    href={`https://${deployment.subdomain}.server.appstetic.com`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 cursor-pointer transition-colors"
                   >
-                    http://localhost:{deployment.port}
+                    https://{deployment.subdomain}.server.appstetic.com
                   </a>
                 ) : (
                   <span className="text-sm text-gray-400 dark:text-gray-500">-</span>
@@ -159,7 +159,7 @@ export default function DeploymentTable() {
                   <button
                     onClick={() => {
                       window.open(
-                        `http://localhost:${deployment.port}`,
+                        `https://${deployment.subdomain}.server.appstetic.com`,
                         '_blank'
                       );
                     }}
