@@ -68,15 +68,25 @@ sudo apt-get install -y \
   libxi6 \
   libxtst6 \
   libnss3 \
-  libcups2 \
+  libnspr4 \
+  libdbus-1-3 \
   libxss1 \
   libxrandr2 \
-  libasound2 \
-  libatk1.0-0 \
-  libatk-bridge2.0-0 \
+  libgbm1 \
+  fonts-liberation \
+  xdg-utils
+
+# For Ubuntu 24.04 (Noble), use t64 packages
+sudo apt-get install -y \
+  libcups2t64 \
+  libasound2t64 \
+  libatk1.0-0t64 \
+  libatk-bridge2.0-0t64 \
   libpangocairo-1.0-0 \
-  libgtk-3-0 \
-  libgbm1
+  libgtk-3-0t64 \
+  libdrm2 \
+  libxkbcommon0 \
+  libxshmfence1
 
 # Install dependencies
 npm install
