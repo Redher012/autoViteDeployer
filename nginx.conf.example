@@ -46,6 +46,7 @@ server {
     ssl_session_timeout 10m;
 
     # Increase client body size limit for file uploads (default is 1MB)
+    # IMPORTANT: This must be set in the server block, not just location
     client_max_body_size 100M;
 
     location / {
