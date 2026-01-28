@@ -29,11 +29,9 @@ git pull origin main || git pull origin master
 echo -e "${BLUE}📦 Installing dependencies...${NC}"
 npm install
 
-# Initialize database if needed
-if [ ! -f "data/deployments.db" ]; then
-    echo -e "${YELLOW}🗄️  Database not found. Initializing...${NC}"
-    npm run setup-db
-fi
+# Initialize/update database (applies migrations)
+echo -e "${BLUE}🗄️  Updating database schema...${NC}"
+npm run setup-db
 
 # Build Next.js app
 echo -e "${BLUE}🔨 Building Next.js application...${NC}"

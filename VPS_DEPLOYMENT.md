@@ -57,10 +57,31 @@ cd /opt/auto-website-deployer
 # OR if cloning from Git (as you did)
 cd /var/www/autoViteDeployer
 
+# Install Puppeteer system dependencies (required for screenshots)
+sudo apt-get update
+sudo apt-get install -y \
+  chromium-browser \
+  libx11-xcb1 \
+  libxcomposite1 \
+  libxcursor1 \
+  libxdamage1 \
+  libxi6 \
+  libxtst6 \
+  libnss3 \
+  libcups2 \
+  libxss1 \
+  libxrandr2 \
+  libasound2 \
+  libatk1.0-0 \
+  libatk-bridge2.0-0 \
+  libpangocairo-1.0-0 \
+  libgtk-3-0 \
+  libgbm1
+
 # Install dependencies
 npm install
 
-# Initialize database
+# Initialize database (will add screenshot_path column if needed)
 npm run setup-db
 
 # Build Next.js app

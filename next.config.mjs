@@ -28,6 +28,7 @@ const nextConfig = {
         'fs-extra',
         'yauzl',
         'uuid',
+        'puppeteer',
       ];
       
       config.externals.push(...serverOnlyModules);
