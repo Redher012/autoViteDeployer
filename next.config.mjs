@@ -15,9 +15,9 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '100mb',
     },
-    // Increase body size limit for API routes when middleware is used (Next.js 16+)
+    // Increase body size limit for API routes (Next.js 16+)
     // This affects the maximum body size that can be parsed
-    middlewareClientMaxBodySize: '100mb',
+    proxyClientMaxBodySize: '100mb',
   },
   webpack: (config, { isServer }) => {
     if (isServer) {
