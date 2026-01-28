@@ -10,6 +10,12 @@ const nextConfig = {
   outputFileTracingIncludes: {
     '/api/**': ['./lib/**/*'],
   },
+  // Increase body size limit for file uploads (default is 1MB)
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '50mb',
+    },
+  },
   webpack: (config, { isServer }) => {
     if (isServer) {
       // Externalize native modules and server-only packages for server-side

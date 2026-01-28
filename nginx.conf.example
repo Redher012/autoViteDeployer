@@ -4,7 +4,7 @@
 # Then create symlink: sudo ln -s /etc/nginx/sites-available/auto-deployer /etc/nginx/sites-enabled/
 # Reload: sudo nginx -t && sudo systemctl reload nginx
 
-# Main Next.js application
+# Main Next.js application - Main domain
 server {
     listen 80;
     server_name appstetic.com www.appstetic.com;
@@ -22,10 +22,72 @@ server {
     }
 }
 
-# Wildcard subdomain for deployments
+# HTTP to HTTPS redirect for server.appstetic.com
+server {
+    listen 80;
+    server_name server.appstetic.com;
+    return 301 https://$server_name$request_uri;
+}
+
+# HTTPS - Main Next.js application - server.appstetic.com
+server {
+    listen 443 ssl http2;
+    server_name server.appstetic.com;
+
+    # SSL Configuration (update paths if your cert is different)
+    ssl_certificate /etc/letsencrypt/live/server.appstetic.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/server.appstetic.com/privkey.pem;
+    
+    # SSL Security Settings
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+
+    # Increase client body size limit for file uploads (default is 1MB)
+    client_max_body_size 100M;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Increase timeouts for large file uploads
+        proxy_connect_timeout 300s;
+        proxy_send_timeout 300s;
+        proxy_read_timeout 300s;
+    }
+}
+
+# HTTP to HTTPS redirect for wildcard subdomains
 server {
     listen 80;
     server_name *.server.appstetic.com;
+    return 301 https://$server_name$request_uri;
+}
+
+# HTTPS - Wildcard subdomain for deployments
+server {
+    listen 443 ssl http2;
+    server_name *.server.appstetic.com;
+
+    # SSL Configuration (update paths if your cert is different)
+    ssl_certificate /etc/letsencrypt/live/server.appstetic.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/server.appstetic.com/privkey.pem;
+    
+    # SSL Security Settings
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
 
     location / {
         proxy_pass http://localhost:8080;

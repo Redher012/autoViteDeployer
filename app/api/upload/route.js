@@ -7,6 +7,12 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 
+// Note: Body size limits are configured in next.config.mjs
+// For App Router, use runtime: 'nodejs' and configure in next.config.mjs
+
+export const runtime = 'nodejs';
+export const maxDuration = 300; // 5 minutes for large uploads
+
 export async function POST(request) {
   try {
     const formData = await request.formData();

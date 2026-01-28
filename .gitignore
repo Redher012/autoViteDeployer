@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# deployment platform specific
+/deployments/
+/uploads/
+/data/
+*.db
+*.db-journal
+/logs/
+*.log
+*.tar.gz
