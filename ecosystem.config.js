@@ -16,6 +16,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 3000,
+        PATH: process.env.PATH || '/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin',
       },
       error_file: './logs/app-error.log',
       out_file: './logs/app-out.log',
@@ -35,6 +36,7 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 8080,
         DEPLOYMENT_DOMAIN: 'server.appstetic.com', // Change to your domain
+        PATH: process.env.PATH || '/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin',
       },
       error_file: './logs/proxy-error.log',
       out_file: './logs/proxy-out.log',
