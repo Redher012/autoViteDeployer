@@ -95,21 +95,27 @@ export default function DeploymentTable() {
           className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow"
         >
           {/* Screenshot Preview */}
-          <div className="relative aspect-video bg-gray-100 dark:bg-gray-900 overflow-hidden group">
+          <div className="relative aspect-video bg-gray-200 dark:bg-gray-800 overflow-hidden group">
             {deployment.screenshot_path ? (
               <>
                 <img
                   src={`/api/screenshots/${(deployment.screenshot_path || '').split('/').pop() || ''}?v=${deployment.updated_at || Date.now()}`}
                   alt={`Screenshot of ${deployment.site_name}`}
-                  className="w-full h-full object-cover object-top bg-gray-200 dark:bg-gray-800"
+                  className="absolute inset-0 w-full h-full object-cover object-top"
+                  onLoad={(e) => {
+                    const img = e.target;
+                    console.log(`[Screenshot] Loaded ${deployment.site_name}: ${img.naturalWidth}x${img.naturalHeight}`);
+                  }}
                   onError={(e) => {
-                    e.target.style.display = 'none';
-                    const fallback = e.target.nextElementSibling;
+                    const img = e.target;
+                    console.error(`[Screenshot] Failed to load ${deployment.site_name}`);
+                    img.style.display = 'none';
+                    const fallback = img.nextElementSibling;
                     if (fallback) fallback.style.display = 'flex';
                   }}
                 />
                 <div
-                  className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-gray-400 dark:text-gray-500 bg-gray-200 dark:bg-gray-800"
+                  className="absolute inset-0 hidden flex-col items-center justify-center gap-2 text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-800"
                   style={{ display: 'none' }}
                   aria-hidden
                 >
@@ -119,12 +125,12 @@ export default function DeploymentTable() {
                   <span className="text-sm">Preview unavailable</span>
                 </div>
                 {deployment.status === 'running' && (
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity flex items-center justify-center">
+                  <div className="absolute inset-0 pointer-events-none group-hover:pointer-events-auto bg-transparent group-hover:bg-black/50 transition-all flex items-center justify-center z-10">
                     <a
                       href={`https://${deployment.subdomain}.server.appstetic.com`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md cursor-pointer"
+                      className="pointer-events-auto opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md cursor-pointer"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
