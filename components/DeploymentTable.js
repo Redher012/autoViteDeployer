@@ -99,7 +99,7 @@ export default function DeploymentTable() {
             {deployment.screenshot_path ? (
               <>
                 <img
-                  src={`${deployment.screenshot_path}?v=${deployment.updated_at || Date.now()}`}
+                  src={`/api/screenshots/${deployment.screenshot_path.split('/').pop()}?v=${deployment.updated_at || Date.now()}`}
                   alt={`Screenshot of ${deployment.site_name}`}
                   className="w-full h-full object-cover object-top"
                 />
