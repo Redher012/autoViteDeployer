@@ -10,12 +10,15 @@ const nextConfig = {
   outputFileTracingIncludes: {
     '/api/**': ['./lib/**/*'],
   },
-  // Increase body size limit for file uploads (default is 1MB)
+  // Increase body size limit for file uploads (Server Actions)
   experimental: {
     serverActions: {
-      bodySizeLimit: '50mb',
+      bodySizeLimit: '100mb',
     },
   },
+  // Increase body size limit for API routes and middleware (Next.js 16+)
+  // This affects the maximum body size that can be parsed
+  middlewareClientMaxBodySize: '100mb',
   webpack: (config, { isServer }) => {
     if (isServer) {
       // Externalize native modules and server-only packages for server-side
