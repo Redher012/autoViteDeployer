@@ -15,7 +15,7 @@ This guide will help you deploy the Vite Deployment Platform on your Ubuntu VPS.
 Before deploying to your VPS, ensure you have:
 
 - [ ] Ubuntu/Debian VPS with root access
-- [ ] Node.js 18+ installed
+- [ ] Node.js 20.9.0+ installed (required for Next.js 16)
 - [ ] Nginx installed
 - [ ] Domain name (e.g., `appstetic.com`)
 - [ ] DNS access to configure wildcard subdomains
@@ -38,10 +38,24 @@ scp deployer.tar.gz user@your-vps-ip:/home/user/
 # SSH into your VPS
 ssh user@your-vps-ip
 
-# Extract files
+# Check current Node.js version
+node --version
+
+# If Node.js < 20.9.0, upgrade using NodeSource repository
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Verify Node.js version (should be 20.9.0 or higher)
+node --version
+npm --version
+
+# Extract files (if using tar method)
 cd /home/user
 tar -xzf deployer.tar.gz -C /opt/auto-website-deployer
 cd /opt/auto-website-deployer
+
+# OR if cloning from Git (as you did)
+cd /var/www/autoViteDeployer
 
 # Install dependencies
 npm install
