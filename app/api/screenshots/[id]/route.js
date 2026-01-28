@@ -2,38 +2,50 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
-// UUID regex + .png extension only (prevent path traversal)
-const VALID_ID = /^[a-f0-9-]{36}\.png$/i;
-
-export async function GET(request, { params }) {
+export async function GET(request, context) {
   try {
-    const resolved = await params;
-    const id = resolved?.id;
-
+    // Next.js 15+: params is a Promise
+    const params = await context.params;
+    const id = params?.id;
+    
+    console.log('[SCREENSHOT API] Requested id:', id);
+    
     if (!id || typeof id !== 'string') {
+      console.log('[SCREENSHOT API] Missing or invalid id');
       return new NextResponse('Missing screenshot id', { status: 400 });
     }
 
-    if (!VALID_ID.test(id)) {
-      return new NextResponse('Invalid screenshot id', { status: 400 });
+    // Only allow uuid.png format
+    const uuidRegex = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\.png$/i;
+    if (!uuidRegex.test(id)) {
+      console.log('[SCREENSHOT API] Invalid id format:', id);
+      return new NextResponse('Invalid screenshot id format', { status: 400 });
     }
 
-    const screenshotPath = path.join(process.cwd(), 'public', 'screenshots', id);
+    const screenshotsDir = path.join(process.cwd(), 'public', 'screenshots');
+    const screenshotPath = path.join(screenshotsDir, id);
+    
+    console.log('[SCREENSHOT API] Looking for file at:', screenshotPath);
 
     if (!fs.existsSync(screenshotPath)) {
+      console.log('[SCREENSHOT API] File not found');
       return new NextResponse('Screenshot not found', { status: 404 });
     }
+
+    const stats = fs.statSync(screenshotPath);
+    console.log('[SCREENSHOT API] File size:', stats.size, 'bytes');
 
     const fileBuffer = fs.readFileSync(screenshotPath);
 
     return new NextResponse(fileBuffer, {
       headers: {
         'Content-Type': 'image/png',
-        'Cache-Control': 'public, max-age=31536000, immutable',
+        'Content-Length': String(stats.size),
+        'Cache-Control': 'public, max-age=3600',
       },
     });
   } catch (error) {
-    console.error('Error serving screenshot:', error);
+    console.error('[SCREENSHOT API] Error:', error);
     return new NextResponse('Error serving screenshot', { status: 500 });
   }
 }
