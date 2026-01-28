@@ -44,7 +44,8 @@ next-env.d.ts
 /deployments/
 /uploads/
 /data/
-/public/screenshots/
+/public/screenshots/*.png
+/public/screenshots/*.jpg
 *.db
 *.db-journal
 /logs/
