@@ -2,20 +2,30 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
+// UUID regex + .png extension only (prevent path traversal)
+const VALID_ID = /^[a-f0-9-]{36}\.png$/i;
+
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
+    const resolved = await params;
+    const id = resolved?.id;
+
+    if (!id || typeof id !== 'string') {
+      return new NextResponse('Missing screenshot id', { status: 400 });
+    }
+
+    if (!VALID_ID.test(id)) {
+      return new NextResponse('Invalid screenshot id', { status: 400 });
+    }
+
     const screenshotPath = path.join(process.cwd(), 'public', 'screenshots', id);
-    
-    // Check if file exists
+
     if (!fs.existsSync(screenshotPath)) {
       return new NextResponse('Screenshot not found', { status: 404 });
     }
-    
-    // Read the file
+
     const fileBuffer = fs.readFileSync(screenshotPath);
-    
-    // Return the image with proper headers
+
     return new NextResponse(fileBuffer, {
       headers: {
         'Content-Type': 'image/png',

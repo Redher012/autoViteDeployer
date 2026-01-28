@@ -99,10 +99,25 @@ export default function DeploymentTable() {
             {deployment.screenshot_path ? (
               <>
                 <img
-                  src={`/api/screenshots/${deployment.screenshot_path.split('/').pop()}?v=${deployment.updated_at || Date.now()}`}
+                  src={`/api/screenshots/${(deployment.screenshot_path || '').split('/').pop() || ''}?v=${deployment.updated_at || Date.now()}`}
                   alt={`Screenshot of ${deployment.site_name}`}
-                  className="w-full h-full object-cover object-top"
+                  className="w-full h-full object-cover object-top bg-gray-200 dark:bg-gray-800"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    const fallback = e.target.nextElementSibling;
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
                 />
+                <div
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-gray-400 dark:text-gray-500 bg-gray-200 dark:bg-gray-800"
+                  style={{ display: 'none' }}
+                  aria-hidden
+                >
+                  <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span className="text-sm">Preview unavailable</span>
+                </div>
                 {deployment.status === 'running' && (
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity flex items-center justify-center">
                     <a
