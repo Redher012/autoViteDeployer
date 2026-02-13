@@ -1,18 +1,11 @@
 /**
- * Cleanup endpoint for expired demo deployments
- * 
- * This endpoint removes demo deployments that have expired (older than 30 minutes).
- * 
- * Setup cron job (runs every 5 minutes):
- * 
- * Add to crontab (crontab -e):
- * */5 * * * * curl -X GET http://localhost:3000/api/demo/cleanup > /dev/null 2>&1
- * 
- * Or with authentication (if CLEANUP_SECRET is set):
- * */5 * * * * curl -X GET -H "Authorization: Bearer YOUR_SECRET" http://localhost:3000/api/demo/cleanup > /dev/null 2>&1
- * 
- * Note: Cleanup also runs automatically when /api/demo/deployments is called,
- * so manual cron setup is optional but recommended for reliability.
+ * Cleanup endpoint for expired demo deployments.
+ * Removes demo deployments that have expired (older than 30 minutes)
+ * and orphaned upload files.
+ *
+ * Cron (every 5 min): add to crontab (crontab -e) a line like:
+ *   0,5,10,15,20,25,30,35,40,45,50,55 * * * * curl -s -X GET http://localhost:3000/api/demo/cleanup
+ * Cleanup also runs when /api/demo/deployments is called.
  */
 import { NextResponse } from 'next/server';
 import path from 'path';
