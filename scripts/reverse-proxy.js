@@ -55,29 +55,14 @@ app.use((req, res, next) => {
     return;
   }
   
-  // Proxy to the preview server (Vite or Next.js) on localhost so the app runs behind this proxy.
-  // Use changeOrigin: false and pass original Host so redirects (e.g. to /login) use the public
-  // URL (holymed.server.appstetic.com), not localhost, otherwise the browser would request
-  // the user's localhost and fail.
-  const target = `http://127.0.0.1:${deployment.port}`;
+  // Proxy to the Vite preview server
   const proxy = createProxyMiddleware({
-    target,
-    changeOrigin: false, // Preserve Host: subdomain.server.appstetic.com so redirects are correct
-    ws: true,
+    target: `http://localhost:${deployment.port}`,
+    changeOrigin: true,
+    ws: true, // Enable websocket proxying
     logLevel: 'info',
-    headers: {
-      'X-Forwarded-Host': host,
-      'X-Forwarded-Proto': req.headers['x-forwarded-proto'] || 'https',
-    },
-    onError(err, req, res) {
-      console.error(`[PROXY] Error proxying ${req.method} ${req.url} to ${target}:`, err.message);
-      if (!res.headersSent) {
-        res.writeHead(502, { 'Content-Type': 'text/plain' });
-        res.end(`Bad Gateway: ${err.message}`);
-      }
-    },
   });
-
+  
   proxy(req, res, next);
 });
 
