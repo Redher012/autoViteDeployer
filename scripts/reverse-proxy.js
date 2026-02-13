@@ -55,14 +55,22 @@ app.use((req, res, next) => {
     return;
   }
   
-  // Proxy to the Vite preview server
+  // Proxy to the preview server (Vite or Next.js)
+  const target = `http://localhost:${deployment.port}`;
   const proxy = createProxyMiddleware({
-    target: `http://localhost:${deployment.port}`,
+    target,
     changeOrigin: true,
     ws: true, // Enable websocket proxying
     logLevel: 'info',
+    onError(err, req, res) {
+      console.error(`[PROXY] Error proxying ${req.method} ${req.url} to ${target}:`, err.message);
+      if (!res.headersSent) {
+        res.writeHead(502, { 'Content-Type': 'text/plain' });
+        res.end(`Bad Gateway: ${err.message}`);
+      }
+    },
   });
-  
+
   proxy(req, res, next);
 });
 
