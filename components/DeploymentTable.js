@@ -45,6 +45,42 @@ export default function DeploymentTable() {
     }
   };
 
+  const handleCopyUrl = async (subdomain, event) => {
+    const url = `https://${subdomain}.server.appstetic.com`;
+    try {
+      await navigator.clipboard.writeText(url);
+      // Show a brief success feedback
+      const button = event?.target?.closest('button');
+      if (button) {
+        const originalText = button.innerHTML;
+        button.innerHTML = `
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          Copied!
+        `;
+        setTimeout(() => {
+          button.innerHTML = originalText;
+        }, 2000);
+      }
+    } catch (error) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = url;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        alert('URL copied to clipboard!');
+      } catch (err) {
+        alert('Failed to copy URL. Please copy manually: ' + url);
+      }
+      document.body.removeChild(textArea);
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'running':
@@ -188,29 +224,96 @@ export default function DeploymentTable() {
             </div>
             
             {/* Action Buttons */}
-            <div className="flex gap-2">
-              {deployment.status === 'running' && deployment.subdomain && (
-                <a
-                  href={`https://${deployment.subdomain}.server.appstetic.com`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-md cursor-pointer transition-colors"
+            <div className="space-y-2">
+              {/* First row: Visit and Remove */}
+              <div className="flex gap-2">
+                {deployment.status === 'running' && deployment.subdomain && (
+                  <a
+                    href={`https://${deployment.subdomain}.server.appstetic.com`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-md cursor-pointer transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Visit
+                  </a>
+                )}
+                <button
+                  onClick={() => handleDelete(deployment.id)}
+                  className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 rounded-md cursor-pointer transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
-                  Visit
-                </a>
-              )}
-              <button
-                onClick={() => handleDelete(deployment.id)}
-                className={`${deployment.status === 'running' ? 'flex-none' : 'flex-1'} inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 rounded-md cursor-pointer transition-colors`}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Remove
-              </button>
+                  Remove
+                </button>
+              </div>
+              
+              {/* Second row: Copy URL and Download */}
+              <div className="flex gap-2">
+                {deployment.status === 'running' && deployment.subdomain && (
+                  <button
+                    onClick={(e) => handleCopyUrl(deployment.subdomain, e)}
+                    className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-600 rounded-md cursor-pointer transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Copy URL
+                  </button>
+                )}
+                {deployment.file_path && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        console.log('[CLIENT] Starting download for deployment:', deployment.id);
+                        const response = await fetch(`/api/deployments/${deployment.id}/download`);
+                        console.log('[CLIENT] Response status:', response.status, 'Content-Type:', response.headers.get('content-type'));
+                        
+                        if (!response.ok) {
+                          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                          console.error('[CLIENT] Download failed:', errorData);
+                          alert(`Failed to download: ${errorData.error || 'Unknown error'}`);
+                          return;
+                        }
+                        
+                        const contentType = response.headers.get('content-type');
+                        console.log('[CLIENT] Content-Type received:', contentType);
+                        
+                        if (!contentType || !contentType.includes('zip')) {
+                          const text = await response.text();
+                          console.error('[CLIENT] Unexpected content type, response:', text.substring(0, 200));
+                          alert('Server returned unexpected content type. Check console for details.');
+                          return;
+                        }
+                        
+                        const blob = await response.blob();
+                        console.log('[CLIENT] Blob created, size:', blob.size, 'type:', blob.type);
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = deployment.file_path.split('/').pop() || 'download.zip';
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+                        console.log('[CLIENT] Download triggered');
+                      } catch (error) {
+                        console.error('[CLIENT] Download error:', error);
+                        alert(`Failed to download: ${error.message}`);
+                      }
+                    }}
+                    className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 rounded-md cursor-pointer transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

@@ -46,6 +46,22 @@ export async function DELETE(request, { params }) {
     // Next.js 15+ requires params to be awaited
     const { id } = await params;
     const deploymentManager = getDeploymentManager();
+    
+    // Check if this is a demo request trying to delete a non-demo project
+    const referer = request.headers.get('referer') || '';
+    const isDemoRequest = referer.includes('/demo');
+    
+    if (isDemoRequest) {
+      // Demo users can only delete their own demo projects
+      const isDemo = deploymentManager.isDemoDeployment(id);
+      if (!isDemo) {
+        return NextResponse.json(
+          { error: 'Unauthorized: Demo users can only remove their own projects' },
+          { status: 403 }
+        );
+      }
+    }
+    
     await deploymentManager.removeDeployment(id);
     return NextResponse.json({ success: true });
   } catch (error) {
