@@ -44,6 +44,9 @@ app.use((req, res, next) => {
   const deployment = getDeploymentBySubdomain(subdomain);
   
   if (!deployment || !deployment.port) {
+    // #region agent log
+    fetch('http://127.0.0.1:7321/ingest/1f8d5258-140b-4575-a452-3cf09e8fea30',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b5753b'},body:JSON.stringify({sessionId:'b5753b',runId:'pre',hypothesisId:'H2',location:'scripts/reverse-proxy.js:46',message:'no running deployment/port for subdomain',data:{host,subdomain,hasDeployment:!!deployment,port:deployment?.port,status:deployment?.status},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     res.status(404).send(`
       <html>
         <body>
@@ -61,6 +64,13 @@ app.use((req, res, next) => {
     changeOrigin: true,
     ws: true, // Enable websocket proxying
     logLevel: 'info',
+    on: {
+      error: (err, req, res) => {
+        // #region agent log
+        fetch('http://127.0.0.1:7321/ingest/1f8d5258-140b-4575-a452-3cf09e8fea30',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b5753b'},body:JSON.stringify({sessionId:'b5753b',runId:'pre',hypothesisId:'H2',location:'scripts/reverse-proxy.js:60',message:'proxy upstream error',data:{subdomain,port:deployment.port,errCode:err?.code,errMessage:err?.message},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
+      }
+    },
   });
   
   proxy(req, res, next);
@@ -78,6 +88,9 @@ server.listen(PORT, () => {
   console.log(`Configure your DNS to point *.${DOMAIN} to this server`);
   console.log(`Then configure Nginx/Apache to proxy requests to localhost:${PORT}`);
   console.log(`Domain pattern: *.${DOMAIN}`);
+  // #region agent log
+  fetch('http://127.0.0.1:7321/ingest/1f8d5258-140b-4575-a452-3cf09e8fea30',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b5753b'},body:JSON.stringify({sessionId:'b5753b',runId:'pre',hypothesisId:'H1',location:'scripts/reverse-proxy.js:76',message:'reverse-proxy started',data:{PORT,DOMAIN},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
 });
 
 // Graceful shutdown
