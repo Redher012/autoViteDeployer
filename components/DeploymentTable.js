@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 export default function DeploymentTable() {
   const [deployments, setDeployments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [restartingAll, setRestartingAll] = useState(false);
 
   const fetchDeployments = async () => {
     try {
@@ -24,6 +25,29 @@ export default function DeploymentTable() {
     const interval = setInterval(fetchDeployments, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleRestartAll = async () => {
+    if (!confirm('Restart ALL running deployments? This will briefly interrupt all sites.')) {
+      return;
+    }
+
+    setRestartingAll(true);
+    try {
+      const res = await fetch('/api/deployments/restart-all', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || 'Failed to restart deployments');
+      }
+      const okCount = Array.isArray(data?.results) ? data.results.filter(r => r.ok).length : 0;
+      const failCount = Array.isArray(data?.results) ? data.results.filter(r => !r.ok).length : 0;
+      alert(`Restart complete. OK: ${okCount}, Failed: ${failCount}`);
+      fetchDeployments();
+    } catch (e) {
+      alert(`Restart failed: ${e?.message || e}`);
+    } finally {
+      setRestartingAll(false);
+    }
+  };
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to remove this deployment?')) {
@@ -124,7 +148,18 @@ export default function DeploymentTable() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="space-y-4">
+      <div className="flex items-center justify-end">
+        <button
+          onClick={handleRestartAll}
+          disabled={restartingAll}
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed rounded-md transition-colors"
+        >
+          {restartingAll ? 'Restarting…' : 'Restart all'}
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {deployments.map((deployment) => (
         <div
           key={deployment.id}
@@ -318,6 +353,7 @@ export default function DeploymentTable() {
           </div>
         </div>
       ))}
+      </div>
     </div>
   );
 }
