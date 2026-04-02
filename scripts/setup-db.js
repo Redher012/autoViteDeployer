@@ -7,6 +7,15 @@
 
 const db = require('../lib/db');
 
+// Normalize demo flags to ensure admin uploads never expire
+try {
+  // If a row is not demo, it must not have an expiration timestamp.
+  db.exec(`UPDATE deployments SET expires_at = NULL WHERE is_demo = 0`);
+  console.log('Normalized expires_at for non-demo deployments');
+} catch (err) {
+  console.error('Error normalizing expires_at:', err.message);
+}
+
 // Add screenshot_path column if it doesn't exist (migration for existing databases)
 try {
   db.exec(`ALTER TABLE deployments ADD COLUMN screenshot_path TEXT`);
