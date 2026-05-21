@@ -1,11 +1,34 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
+function isPublicRoute(pathname, method) {
+  if (pathname === '/login' || pathname.startsWith('/api/auth/')) {
+    return true;
+  }
+  // Public demo page and its APIs (no login required)
+  if (pathname === '/demo') {
+    return true;
+  }
+  if (pathname.startsWith('/api/demo/')) {
+    return true;
+  }
+  if (pathname.startsWith('/api/screenshots/')) {
+    return true;
+  }
+  // Demo UI: remove/download demo projects only (enforced in route handlers)
+  if (method === 'DELETE' && /^\/api\/deployments\/[^/]+$/.test(pathname)) {
+    return true;
+  }
+  if (method === 'GET' && /^\/api\/deployments\/[^/]+\/download$/.test(pathname)) {
+    return true;
+  }
+  return false;
+}
+
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  // Allow login page and auth API routes
-  if (pathname === '/login' || pathname.startsWith('/api/auth/')) {
+  if (isPublicRoute(pathname, request.method)) {
     return NextResponse.next();
   }
 

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { readFile } from 'fs/promises';
 import path from 'path';
 import Module from 'module';
@@ -46,14 +47,17 @@ export async function GET(request, { params }) {
       );
     }
     
-    // Check if this is a demo request trying to download a non-demo project
-    const referer = request.headers.get('referer') || '';
-    const isDemoRequest = referer.includes('/demo');
-    
-    if (isDemoRequest) {
-      // Demo users can only download their own demo projects
-      const isDemo = deploymentManager.isDemoDeployment(id);
-      if (!isDemo) {
+    const cookieStore = await cookies();
+    const isAuthenticated = !!cookieStore.get('auth_token');
+
+    if (!isAuthenticated) {
+      if (!deploymentManager.isDemoDeployment(id)) {
+        console.log('[DOWNLOAD] Unauthorized: unauthenticated download of non-demo project', { id });
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+      }
+    } else {
+      const referer = request.headers.get('referer') || '';
+      if (referer.includes('/demo') && !deploymentManager.isDemoDeployment(id)) {
         console.log('[DOWNLOAD] Unauthorized: Demo user trying to download non-demo project', { id });
         return NextResponse.json(
           { error: 'Unauthorized: Demo users can only download their own projects' },

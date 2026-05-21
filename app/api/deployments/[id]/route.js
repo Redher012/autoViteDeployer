@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import path from 'path';
 import Module from 'module';
 import { fileURLToPath } from 'url';
@@ -21,6 +22,11 @@ function getDeploymentManager() {
 
 export async function GET(request, { params }) {
   try {
+    const cookieStore = await cookies();
+    if (!cookieStore.get('auth_token')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     // Next.js 15+ requires params to be awaited
     const { id } = await params;
     const deploymentManager = getDeploymentManager();
@@ -47,14 +53,16 @@ export async function DELETE(request, { params }) {
     const { id } = await params;
     const deploymentManager = getDeploymentManager();
     
-    // Check if this is a demo request trying to delete a non-demo project
-    const referer = request.headers.get('referer') || '';
-    const isDemoRequest = referer.includes('/demo');
-    
-    if (isDemoRequest) {
-      // Demo users can only delete their own demo projects
-      const isDemo = deploymentManager.isDemoDeployment(id);
-      if (!isDemo) {
+    const cookieStore = await cookies();
+    const isAuthenticated = !!cookieStore.get('auth_token');
+
+    if (!isAuthenticated) {
+      if (!deploymentManager.isDemoDeployment(id)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+      }
+    } else {
+      const referer = request.headers.get('referer') || '';
+      if (referer.includes('/demo') && !deploymentManager.isDemoDeployment(id)) {
         return NextResponse.json(
           { error: 'Unauthorized: Demo users can only remove their own projects' },
           { status: 403 }
