@@ -41,7 +41,14 @@ npm run build
 echo -e "${BLUE}🔄 Restarting PM2 processes...${NC}"
 pm2 restart ecosystem.config.js
 
-# Preview servers are restored automatically via instrumentation.js (~8s after app start)
+# Restore deployed site preview servers (they stop when the deployer restarts)
+echo -e "${BLUE}🔌 Restoring preview servers for deployed sites...${NC}"
+sleep 5
+if node scripts/restore-preview-servers.js; then
+  echo -e "${GREEN}✓ Preview servers restored${NC}"
+else
+  echo -e "${YELLOW}⚠ Some preview servers failed to restore — check logs or use Restart all in the dashboard${NC}"
+fi
 
 # Show status
 echo -e "${GREEN}✅ Deployment complete!${NC}"

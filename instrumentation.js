@@ -3,12 +3,14 @@ export async function register() {
     return;
   }
 
+  // Backup restore if deploy.sh script did not run (delayed to avoid racing with deploy.sh)
   setTimeout(async () => {
     try {
-      const deploymentManager = require('./lib/deployment-manager.js');
-      await deploymentManager.ensurePreviewServersRunning();
+      const mod = await import('../lib/deployment-manager.js');
+      const dm = mod.default || mod;
+      await dm.ensurePreviewServersRunning();
     } catch (err) {
       console.error(`[STARTUP] Preview server restore failed: ${err.message}`);
     }
-  }, 8000);
+  }, 20000);
 }
