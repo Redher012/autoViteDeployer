@@ -6,6 +6,7 @@ export default function DeploymentTable() {
   const [deployments, setDeployments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [restartingAll, setRestartingAll] = useState(false);
+  const [capturingPreviews, setCapturingPreviews] = useState(false);
 
   const fetchDeployments = async () => {
     try {
@@ -25,6 +26,23 @@ export default function DeploymentTable() {
     const interval = setInterval(fetchDeployments, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleCapturePreviews = async () => {
+    setCapturingPreviews(true);
+    try {
+      const res = await fetch('/api/deployments/capture-screenshots', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || 'Failed to queue screenshot capture');
+      }
+      alert(`Queued ${data.queued ?? 0} screenshot(s). Previews will appear within a few minutes.`);
+      fetchDeployments();
+    } catch (e) {
+      alert(`Capture failed: ${e?.message || e}`);
+    } finally {
+      setCapturingPreviews(false);
+    }
+  };
 
   const handleRestartAll = async () => {
     if (!confirm('Restart ALL running deployments? This will briefly interrupt all sites.')) {
@@ -149,7 +167,14 @@ export default function DeploymentTable() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-end gap-2">
+        <button
+          onClick={handleCapturePreviews}
+          disabled={capturingPreviews}
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-md transition-colors"
+        >
+          {capturingPreviews ? 'Queuing…' : 'Capture previews'}
+        </button>
         <button
           onClick={handleRestartAll}
           disabled={restartingAll}
