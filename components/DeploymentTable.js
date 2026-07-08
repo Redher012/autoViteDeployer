@@ -35,7 +35,7 @@ export default function DeploymentTable() {
       if (!res.ok) {
         throw new Error(data?.error || 'Failed to queue screenshot capture');
       }
-      alert(`Queued ${data.queued ?? 0} screenshot(s). Previews will appear within a few minutes.`);
+      alert(`Queued ${data.queued ?? 0} screenshot(s)${data.skipped ? `, skipped ${data.skipped} (servers not running — use Restart all first)` : ''}. Previews will appear within a few minutes.`);
       fetchDeployments();
     } catch (e) {
       alert(`Capture failed: ${e?.message || e}`);

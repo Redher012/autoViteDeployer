@@ -41,6 +41,8 @@ npm run build
 echo -e "${BLUE}🔄 Restarting PM2 processes...${NC}"
 pm2 restart ecosystem.config.js
 
+# Preview servers are restored automatically via instrumentation.js (~8s after app start)
+
 # Show status
 echo -e "${GREEN}✅ Deployment complete!${NC}"
 echo ""
