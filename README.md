@@ -121,6 +121,10 @@ pm2 startup
 5. **Remove deployments:**
    - Click "Remove" on any deployment to stop and delete it
 
+## Agent deploy API
+
+Programmatic deploy and redeploy for agents (bearer `AGENT_API_KEY`, not dashboard cookies): see [AGENT-DEPLOY.md](./AGENT-DEPLOY.md).
+
 ## Project Structure
 
 ```

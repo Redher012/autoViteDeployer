@@ -7,6 +7,7 @@ export default function DeploymentTable() {
   const [loading, setLoading] = useState(true);
   const [restartingAll, setRestartingAll] = useState(false);
   const [capturingPreviews, setCapturingPreviews] = useState(false);
+  const [removingOld, setRemovingOld] = useState(false);
 
   const fetchDeployments = async () => {
     try {
@@ -64,6 +65,39 @@ export default function DeploymentTable() {
       alert(`Restart failed: ${e?.message || e}`);
     } finally {
       setRestartingAll(false);
+    }
+  };
+
+  const handleRemoveOlderThan30Days = async () => {
+    if (
+      !confirm(
+        'This permanently deletes deployments older than 30 days, including their files and installed modules (node_modules). Newer deployments are left alone. Continue?'
+      )
+    ) {
+      return;
+    }
+
+    setRemovingOld(true);
+    try {
+      const res = await fetch('/api/deployments/cleanup-old', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || 'Failed to remove old deployments');
+      }
+      const removed = data?.removed ?? 0;
+      const failed = data?.failed ?? 0;
+      if (removed === 0 && failed === 0) {
+        alert('No deployments older than 30 days.');
+      } else if (failed > 0) {
+        alert(`Removed ${removed}. Failed: ${failed}.`);
+      } else {
+        alert(`Removed ${removed}.`);
+      }
+      fetchDeployments();
+    } catch (e) {
+      alert(`Cleanup failed: ${e?.message || e}`);
+    } finally {
+      setRemovingOld(false);
     }
   };
 
@@ -171,16 +205,23 @@ export default function DeploymentTable() {
         <button
           onClick={handleCapturePreviews}
           disabled={capturingPreviews}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-md transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-md transition-colors cursor-pointer"
         >
           {capturingPreviews ? 'Queuing…' : 'Capture previews'}
         </button>
         <button
           onClick={handleRestartAll}
           disabled={restartingAll}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed rounded-md transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed rounded-md transition-colors cursor-pointer"
         >
           {restartingAll ? 'Restarting…' : 'Restart all'}
+        </button>
+        <button
+          onClick={handleRemoveOlderThan30Days}
+          disabled={removingOld}
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed rounded-md transition-colors cursor-pointer"
+        >
+          {removingOld ? 'Removing…' : 'Remove older than 30 days'}
         </button>
       </div>
 

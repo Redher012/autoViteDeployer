@@ -37,17 +37,18 @@ npm run setup-db
 echo -e "${BLUE}🔨 Building Next.js application...${NC}"
 npm run build
 
-# Restart PM2 processes
+# Restart PM2 processes (deployer-app + deployer-proxy; proxy restores preview servers on startup)
 echo -e "${BLUE}🔄 Restarting PM2 processes...${NC}"
 pm2 restart ecosystem.config.js
 
-# Restore deployed site preview servers (they stop when the deployer restarts)
+# Also run restore directly — deployer-proxy startup restore is the primary path
 echo -e "${BLUE}🔌 Restoring preview servers for deployed sites...${NC}"
-sleep 5
-if node scripts/restore-preview-servers.js; then
+mkdir -p logs
+sleep 8
+if node scripts/restore-preview-servers.js 2>&1 | tee -a logs/restore.log; then
   echo -e "${GREEN}✓ Preview servers restored${NC}"
 else
-  echo -e "${YELLOW}⚠ Some preview servers failed to restore — check logs or use Restart all in the dashboard${NC}"
+  echo -e "${YELLOW}⚠ Some preview servers failed — proxy will auto-restore on next visit${NC}"
 fi
 
 # Show status

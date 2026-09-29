@@ -25,8 +25,58 @@ function isPublicRoute(pathname, method) {
   return false;
 }
 
+/** Edge-safe constant-time string compare (middleware cannot use Node crypto). */
+function timingSafeEqualString(a, b) {
+  const encoder = new TextEncoder();
+  const bufA = encoder.encode(a);
+  const bufB = encoder.encode(b);
+  if (bufA.byteLength !== bufB.byteLength) {
+    return false;
+  }
+  let diff = 0;
+  for (let i = 0; i < bufA.byteLength; i++) {
+    diff |= bufA[i] ^ bufB[i];
+  }
+  return diff === 0;
+}
+
+function verifyAgentBearerInMiddleware(authHeader) {
+  const apiKey = process.env.AGENT_API_KEY;
+  if (!apiKey || apiKey.length === 0) {
+    return {
+      ok: false,
+      status: 503,
+      error: 'AGENT_API_KEY is not configured on the server',
+    };
+  }
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return { ok: false, status: 401, error: 'Unauthorized' };
+  }
+
+  const token = authHeader.slice('Bearer '.length);
+  if (!timingSafeEqualString(token, apiKey)) {
+    return { ok: false, status: 401, error: 'Unauthorized' };
+  }
+
+  return { ok: true };
+}
+
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
+
+  // Agent API: bearer token only (cookie alone must not authorize these routes)
+  if (pathname.startsWith('/api/agent/')) {
+    const authHeader = request.headers.get('authorization');
+    const result = verifyAgentBearerInMiddleware(authHeader);
+    if (!result.ok) {
+      return NextResponse.json(
+        { error: result.error },
+        { status: result.status }
+      );
+    }
+    return NextResponse.next();
+  }
 
   if (isPublicRoute(pathname, request.method)) {
     return NextResponse.next();
